@@ -1,4 +1,4 @@
-# 🎨 Qiu Huiting’s MET Art Explorer — Upgraded UI Version
+# 🎨 Qiu Huiting’s MET Art Explorer — Final Version
 # Data source: The Metropolitan Museum of Art Collection API (public, no key required)
 
 import streamlit as st
@@ -49,12 +49,8 @@ div[data-testid="stImage"] img {
 st.markdown("<h1>🎨 Qiu Huiting’s MET Art Explorer</h1>", unsafe_allow_html=True)
 st.markdown("<p class='subtitle'>Explore beautiful artworks from The Metropolitan Museum of Art API</p>", unsafe_allow_html=True)
 
-# -------------------- SEARCH INPUTS --------------------
-col1, col2 = st.columns([1.5, 1])
-with col1:
-    query = st.text_input("Search for Artworks:", value="flower")
-with col2:
-    artist = st.text_input("Filter by Artist (optional):", value="")
+# -------------------- SEARCH INPUT --------------------
+query = st.text_input("Search for Artworks:", value="flower")
 
 # -------------------- API FUNCTIONS --------------------
 def search_objects(keyword):
@@ -64,7 +60,7 @@ def search_objects(keyword):
     r = requests.get(url, params=params)
     r.raise_for_status()
     data = r.json()
-    return data.get("objectIDs", [])[:120]  # store 120 results to paginate
+    return data.get("objectIDs", [])[:120]  # store up to 120 results
 
 def get_object_detail(object_id):
     """Get detailed info for each artwork."""
@@ -106,16 +102,16 @@ if st.session_state.ids:
             data = get_object_detail(oid)
             title = data.get("title", "Untitled")
             artist_name = data.get("artistDisplayName", "Unknown Artist")
-            if artist and artist.lower() not in artist_name.lower():
-                continue
+            date = data.get("objectDate", "")
             img_url = data.get("primaryImageSmall", "")
+
             with cols[i % 3]:
                 with st.container(border=True):
                     if img_url:
                         response = requests.get(img_url)
                         img = Image.open(BytesIO(response.content))
                         st.image(img, use_column_width=True)
-                    st.markdown(f"**{title}**  \n_{artist_name}_")
+                    st.markdown(f"**{title}**  \n_{artist_name}_  \n*{date}*")
         except Exception as e:
             st.write(f"⚠️ Error loading artwork ID {oid}: {e}")
 
@@ -133,3 +129,4 @@ if st.session_state.ids:
             if st.button("Next ➡️"):
                 st.session_state.page += 1
                 st.rerun()
+
